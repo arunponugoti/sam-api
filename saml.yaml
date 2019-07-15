@@ -80,16 +80,16 @@ Resources:
                - Version: "2012-10-17"
                  Statement:
                  - Effect: "Allow"
-                    Action:
+                   Action:
                       - "codedeploy:PutLifecycleEventHookExecutionStatus"
-                    Resource:
+                   Resource:
                       !Sub 'arn:${AWS::Partition}:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*'
-               - Version: "2012-10-17            
+               - Version: "2012-10-17"            
                  Statement:
                  - Effect: "Allow"
-                    Action:
+                   Action:
                       - "lambda:InvokeFunction"
-                    Resource:  !Ref GetSAMPartyCount.Version
+                   Resource:  !Ref GetSAMPartyCount.Version
         Runtime: nodejs10.x            
         FunctionName: 'CodeDeployHook_preTrafficHook'
         DeploymentPreference:
