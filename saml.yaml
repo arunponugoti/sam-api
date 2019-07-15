@@ -23,3 +23,79 @@ Resources:
                 Properties:
                   Path: /sam
                   Method: get
+            ### NEW !!!      
+            AutoPublishAlias: live
+            DeploymentPreference:
+                Type: Linear10PercentEvery10Minutes
+                Alarms:
+                # A list of alarms that you want to monitor
+                    - !Ref AliasErrorMetricGreaterThanZeroAlarm
+                    - !Ref LatestVersionErrorMetricGreaterThanZeroAlarm    
+                Hooks:
+                # Validation lambda functions that are run before & after
+                    PreTraffic: !Ref PreTrafficLambdaFunction        
+                #    PostTraffic: !Ref PostTrafficLambdaFunction
+
+    AliasErrorMetricGreaterThanZeroAlarm:
+        Type: "AWS::CloudWatch::Alarm"
+        Properties:
+            AlarmDescription: Lambda Function Error > 0
+            ComparisonOperator: GreaterThanThreshold
+            Dimensions:
+                - Name: Resource
+                  Value: !Sub "${GetSAMPartyCount}:live"
+                - Name: FunctionName
+                  Value: !Ref GetSAMPartyCount
+            EvaluationPeriods: 2
+            MetricName: Errors
+            Namespace: AWS/Lambda
+            Period: 60
+            Statistic: Sum
+            Threshold: 0            
+
+    LatestVersionErrorMetricGreaterThanZeroAlarm:
+        Type: "AWS::CloudWatch::Alarm"
+        Properties:
+            AlarmDescription: Lambda Function Error > 0
+            ComparisonOperator: GreaterThanThreshold
+            Dimensions:
+                - Name: Resource
+                  Value: !Sub "${GetSAMPartyCount}:live"
+                - Name: FunctionName
+                  Value: !Ref GetSAMPartyCount
+                - Name: ExecutedVersion
+                  Value: !GetAtt GetSAMPartyCount.Version.Version
+            EvaluationPeriods: 2
+            MetricName: Errors
+            Namespace: AWS/Lambda
+            Period: 60
+            Statistic: Sum
+            Threshold: 0    
+
+    PreTrafficLambdaFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            Handler: preTrafficHook.handler
+            Policies:
+               - Version: "2012-10-17"
+                 Statement:
+                 - Effect: "Allow"
+                    Action:
+                      - "codedeploy:PutLifecycleEventHookExecutionStatus"
+                    Resource:
+                      !Sub 'arn:${AWS::Partition}:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*'
+               - Version: "2012-10-17            
+                 Statement:
+                 - Effect: "Allow"
+                    Action:
+                      - "lambda:InvokeFunction"
+                    Resource:  !Ref GetSAMPartyCount.Version
+        Runtime: nodejs10.x            
+        FunctionName: 'CodeDeployHook_preTrafficHook'
+        DeploymentPreference:
+            Enabled: false
+            Role: ""
+        Environment:
+            Variables:
+               CurrentVersion: !Ref GetSAMPartyCount.Version     
+                      
