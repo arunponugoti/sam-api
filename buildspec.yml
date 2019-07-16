@@ -9,9 +9,11 @@ containers:
             install:
                 commands:
                     - npm install
+                    - npm install eslint --save-dev
+                    - ./node_modules/.bin/eslint --init
             pre_build:
                 commands:
-                    - eslint *.js
+                    - ./node_modules/.bin/eslint *.js
             build:      
                 commands:
                     - npm test
