@@ -6,11 +6,21 @@ environment_variables:
 containers:
     LambdaFunctions:
         phases:
-            during_build:
+            install:
                 commands:
                     - npm install
+            pre_build:
+                commands:
+                    - eslint *.js
+            build:      
+                commands:
+                    - npm test
+            post_build:
+                commands:
+                    
                     - aws cloudformation package --template $INPUT_FILE --s3-bucket $S3_BUCKET --output-template post-saml.yaml
         artifacts:
+            type: zip 
             files:
                 - post-saml.yaml
                 - beta.json
